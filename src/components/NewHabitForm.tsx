@@ -1,9 +1,13 @@
 import { Check } from "phosphor-react";
 import * as Checkbox from '@radix-ui/react-checkbox';
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { api } from "../lib/axios";
-import { ToastComponent } from "./ToastComponent";
+import { useForm, SubmitHandler } from "react-hook-form";
 export function NewHabitForm() {
+    interface IFormInput {
+        title: string
+    }
+
     const availableWeekDays = [
         "Domingo",
         "Segunda-Feira",
@@ -13,24 +17,20 @@ export function NewHabitForm() {
         "Sexta-Feira",
         "Sábado",
     ];
+    const { register, handleSubmit } = useForm<IFormInput>();
 
-    const [title, setTitle] = useState('');
-    const [toastOpen, setToastOpen] = useState(false);
     const [weekDays, setWeekDays] = useState<number[]>([]);
 
-    async function createNewHabit(event: FormEvent) {
+    const createNewHabit: SubmitHandler<IFormInput> = async ({ title }) => {
         try {
-            event.preventDefault();
-
+            console.log(title, weekDays)
             if (!title || weekDays.length === 0) return;
 
             await api.post("/habits", {
                 title, weekDays
             });
 
-            setTitle('');
             setWeekDays([]);
-            setToastOpen(true);
             alert("Hábito criado com Sucesso!");
         } catch (error) {
             alert("Erro ao criar hábito!");
@@ -49,7 +49,7 @@ export function NewHabitForm() {
         }
     }
     return (
-        <form onSubmit={createNewHabit} className="w-full flex flex-col mt-6 ">
+        <form onSubmit={handleSubmit(createNewHabit)} className="w-full flex flex-col mt-6 ">
             <label htmlFor="title" className="font-semibold leading-tight"> Qual seu Comprometimento?</label>
 
             <input
@@ -58,8 +58,7 @@ export function NewHabitForm() {
                 placeholder="ex.: Exercícios, Dormir bem, Beber árgua..."
                 autoFocus
                 className="p-4 rounded-lg mt-3 bg-zinc-800 text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-offset-2 focus:ring-offset-zinc-900"
-                value={title}
-                onChange={event => setTitle(event.target.value)}
+                {...register('title')}
             />
 
             <label htmlFor="" className="font-semibold leading-tight mt-4">
